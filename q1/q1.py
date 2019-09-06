@@ -33,21 +33,21 @@ plt.subplot(1, 2, 1)
 img1 = mpimg.imread('img1.jpg')
 
 plt.imshow(img1) 
-plt.scatter(x=img1_points[:, 0], y=img1_points[:, 1], c='r', s=10, marker='x')
+plt.scatter(x=img1_points[:, 0], y=img1_points[:, 1], c='r', s=10, marker='x', zorder=2)
 
 for line in eqs1:
-	y = (line[2] - line[0] * x)/line[1]
-	plt.plot(x, y, c='g', linewidth=3)
+	y = -(line[2] + line[0] * x)/line[1]
+	plt.plot(x, y, c='g', linewidth=2, zorder=1)
 
 plt.subplot(1, 2, 2)
 img2 = mpimg.imread('img2.jpg')
 
 plt.imshow(img2) 
-plt.scatter(x=img2_points[:, 0], y=img2_points[:, 1], c='r', s=10, marker='x')
+plt.scatter(x=img2_points[:, 0], y=img2_points[:, 1], c='r', s=10, marker='x', zorder=2)
 
 for line in eqs2:
-	y = (line[2] - line[0] * x)/line[1]
-	plt.plot(x, y, c='g', linewidth=3)
+	y = -(line[2] + line[0] * x)/line[1]
+	plt.plot(x, y, c='g', linewidth=2, zorder=1)
 
 mng = plt.get_current_fig_manager()
 mng.full_screen_toggle()
