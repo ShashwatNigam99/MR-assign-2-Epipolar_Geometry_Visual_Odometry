@@ -23,8 +23,8 @@ def get_features_sift(img1):
 
 def get_fundamental_matrix(pts1, pts2):
 	
-	print(pts1)
-	print(pts2)
+	# print(pts1)
+	# print(pts2)
 
 	A = np.zeros([8, 9])
 
@@ -40,31 +40,9 @@ def get_fundamental_matrix(pts1, pts2):
 	
 	u, s, vh = np.linalg.svd(F_mat, full_matrices=False)
 
-	F_mat = u @ np.diag([s[0], s[1], 0]) @ vh.T
-	
-	print(F_mat)
+	F_mat = u @ np.diag([s[0], s[1], 0]) @ vh
 
-	for i in range(8):
-		print(pts1[i] @ F_mat @ pts2[i].T)
-
-	quit()
 	return F_mat
-
-	# 	function [ F_matrix ] = fundamental_matrix_estimation(matchCoords1, matchCoords2)
-
-#	 for n=1:size(matchCoords1,1)
-#		 A(n,:) = kron(matchCoords2(n,:), matchCoords1(n,:));
-#	 end
-	
-#	 [U, D, V] = svd(A);
-   
-#	 Fa = reshape(V(:,9), 3, 3)';
-	
-#	 % Enforcing Rank = 2 %
-#	 [Ua, Da, Va] = svd(Fa);
-#	 F_matrix = Ua * diag([Da(1,1), Da(2,2), 0]) * Va';
-	
-# end
 
 def RANSAC(pts1, pts2):
 
@@ -73,6 +51,7 @@ def RANSAC(pts1, pts2):
 	iterations = 1000
 	maxInliers = 0
 	errThreshold = 0.05
+
 
 	F_matrix = np.zeros([3,3])
 
@@ -89,38 +68,35 @@ def RANSAC(pts1, pts2):
 	for i in range(iterations):
  		idx = random.sample(range(0, total_points), ptsPerItr)
 
- 		print(idx)
- 		select1 = pts1[idx, :]
- 		select2 = pts2[idx, :]
+ 		# for i in range(8):
+ 		# 	print(pts1[i])
+ 		# 	print(pts2[i])
+
+ 		select1 = pts1[idx]
+ 		select2 = pts2[idx]
+
+ 		# print(select1)
+ 		# print(select2)
 
  		F_mat = get_fundamental_matrix(select1, select2)
 
  		# print(xa.shape, F_mat.shape, xa.T.shape)
 
- 		err = np.sum(np.multiply(xb, (F_mat @ xa.T).T))
-
- 		# print(F_mat)
+ 		err = np.sum(np.multiply(xb, (F_mat @ xa.T).T), axis = 1)
  		# print(err)
- 		# quit()
-	print(F_mat)
- 	
- #	% RANSAC Loop
- #	for i=1:iterations
- #		idx = randi(size(matchCoords1,1), [ptsPerItr,1]);
 
- #		select1 = matchCoords1(idx,:);
- #		select2 = matchCoords2(idx,:);
+ 		currentInliers = 0
+ 		for i in range(len(xa)):
+ 			if abs(err[i]) < errThreshold:
+ 				currentInliers += 1
 
- #		F_mat = fundamental_matrix_estimation(select1, select2);
- #		err = sum((xb .* (F_mat * xa')'),2);
+ 		# print(currentInliers)
+ 		if currentInliers > maxInliers:
+ 		   F_matrix = F_mat 
+ 		   maxInliers = currentInliers
 
- #		currentInliers = size( find(abs(err) <= errThreshold) , 1);
- #		if (currentInliers > maxInliers)
- #		   F_matrix = F_mat; 
- #		   maxInliers = currentInliers;
- #		end
-
- #	end
+	print(F_matrix)
+	return F_matrix
 
 cnt = 0
 total_points = 0
