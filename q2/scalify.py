@@ -11,7 +11,7 @@ with open("ground-truth.txt") as file:
 cnt = 0
 f = open('final.txt', 'w')
 
-with open("output.txt") as file:
+with open("outputx.txt") as file:
 	for line in file:
 		l = line.split()
 		
