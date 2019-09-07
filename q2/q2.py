@@ -55,9 +55,9 @@ def get_fundamental_matrix(pts1, pts2):
 def RANSAC(pts1, pts2):
 
 	ptsPerItr = 8
-	iterations = 10
+	iterations = 5
 	maxInliers = 0
-	errThreshold = 0.05
+	errThreshold = 0.001
 
 
 	F_matrix = np.zeros([3,3])
@@ -139,39 +139,42 @@ while cnt < 801:
 
 		if cnt == 0:
 			cnt = 1
+
+			first_row = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0]
+			for i in range(len(first_row)):
+				item = first_row[i]
+				if i != 11:
+					f.write("%s " % item)
+				else:
+					f.write("%s" % item)
+			f.write("\n")
+
 	else:
 		pts1, pts2 = get_features_flow(img1, img2, pts2) 
 		total_points = len(pts1)
 		print("flow: ", cnt)
 
-		# print(pts1.shape)
-		# print(pts2.shape)
-
-		# plt.subplot(1, 2, 1)
-		# plt.imshow(img2) 
-		# plt.scatter(x=pts2[:, 0], y=pts2[:, 1], c='r', s=10, marker='x', zorder=2)
-		
-		# plt.subplot(1, 2, 2)
-		# plt.imshow(img1) 
-		# plt.scatter(x=pts1[:, 0], y=pts1[:, 1], c='r', s=10, marker='x', zorder=2)
-
-		# # mng = plt.get_current_fig_manager()
-		# # mng.full_screen_toggle()
-		# figure = plt.gcf() # get current figure
-		# figure.set_size_inches(15, 15)
-		# plt.savefig('./output_img/img_'+ str(cnt) +'png', dpi = 500)
-		# # plt.show()
-
 		F_mat = RANSAC(pts2, pts1)
 
-		# E, _ = cv2.findEssentialMat(pts1, pts2)
-		# print(E)
 		E_mat = get_E_mat(F_mat, K_mat)
 		print(F_mat)
-		# print(E_mat)
+
 
 		points, R, t, mask = cv2.recoverPose(E_mat, pts1, pts2)
+		T = np.concatenate((R, t), axis=1)
+		newrow = np.array([[0,0,0,1]])
 
+		T = np.concatenate((T, newrow), axis=0)
+		# print(T)
+		# points, R, t, mask = cv2.recoverPose(E_mat, pts2, pts1)
+
+		# T = np.concatenate((R, t), axis=1)
+		# newrow = np.array([[0,0,0,1]])
+
+		# T = np.concatenate((T, newrow), axis=0)
+		# print(T)
+
+		# quit()
 		# t = np.multiply(scale_list[cnt], t)
 
 		# print(R)
@@ -181,6 +184,9 @@ while cnt < 801:
 		newrow = np.array([[0,0,0,1]])
 
 		T = np.concatenate((T, newrow), axis=0)
+
+		T = np.linalg.inv(T)
+
 		T_cum = T_cum @ T
 
 		T_temp = T_cum[:3, :].reshape(1, 12)
