@@ -41,8 +41,14 @@ def get_fundamental_matrix(pts1, pts2):
 	u, s, vh = np.linalg.svd(F_mat, full_matrices=False)
 
 	F_mat = u @ np.diag([s[0], s[1], 0]) @ vh
+	F = cv2.findFundamentalMat(pts1, pts2)
 
-	return F_mat
+	# print(F[0])
+	# print(F_mat)
+
+	# quit()
+
+	return F[0]
 
 def RANSAC(pts1, pts2):
 
@@ -75,12 +81,7 @@ def RANSAC(pts1, pts2):
  		select1 = pts1[idx]
  		select2 = pts2[idx]
 
- 		# print(select1)
- 		# print(select2)
-
  		F_mat = get_fundamental_matrix(select1, select2)
-
- 		# print(xa.shape, F_mat.shape, xa.T.shape)
 
  		err = np.sum(np.multiply(xb, (F_mat @ xa.T).T), axis = 1)
  		# print(err)
@@ -95,11 +96,20 @@ def RANSAC(pts1, pts2):
  		   F_matrix = F_mat 
  		   maxInliers = currentInliers
 
-	print(F_matrix)
+	# print(F_matrix)
+	print(maxInliers)
 	return F_matrix
+
+def get_E_mat(F_mat, K_mat):
+	return K_mat.T @ F_mat @ K_mat
 
 cnt = 0
 total_points = 0
+K_mat = np.array([[7.215377000000e+02,0.000000000000e+00,6.095593000000e+02], \
+			  [0.000000000000e+00,7.215377000000e+02,1.728540000000e+02], \
+			  [0.000000000000e+00,0.000000000000e+00,1.000000000000e+00]])
+
+f = open('output.txt', 'w')
 
 while cnt < 801:
 	s1 = str(cnt).zfill(6)
@@ -117,26 +127,51 @@ while cnt < 801:
 		total_points = len(pts1)
 		print("flow: ", cnt)
 
-		print(pts1.shape)
-		print(pts2.shape)
+		# print(pts1.shape)
+		# print(pts2.shape)
 
-		plt.subplot(1, 2, 1)
-		plt.imshow(img2) 
-		plt.scatter(x=pts2[:, 0], y=pts2[:, 1], c='r', s=10, marker='x', zorder=2)
+		# plt.subplot(1, 2, 1)
+		# plt.imshow(img2) 
+		# plt.scatter(x=pts2[:, 0], y=pts2[:, 1], c='r', s=10, marker='x', zorder=2)
 		
-		plt.subplot(1, 2, 2)
-		plt.imshow(img1) 
-		plt.scatter(x=pts1[:, 0], y=pts1[:, 1], c='r', s=10, marker='x', zorder=2)
+		# plt.subplot(1, 2, 2)
+		# plt.imshow(img1) 
+		# plt.scatter(x=pts1[:, 0], y=pts1[:, 1], c='r', s=10, marker='x', zorder=2)
 
-		mng = plt.get_current_fig_manager()
-		mng.full_screen_toggle()
-		plt.show()
+		# mng = plt.get_current_fig_manager()
+		# mng.full_screen_toggle()
+		# plt.show()
 
-		RANSAC(pts1, pts2)
+		F_mat = RANSAC(pts1, pts2)
+
+		# E, _ = cv2.findEssentialMat(pts1, pts2)
+		# print(E)
+		E_mat = get_E_mat(F_mat, K_mat)
+		print(F_mat)
+		# print(E_mat)
+
+		points, R, t, mask = cv2.recoverPose(E_mat, pts1, pts2)
+
+		# print(R)
+		# print(t) 
+
+		T = np.concatenate((R, t), axis=1)
+		T = T.reshape(1, 12)
+		# print(T)
+
+		
+		for i in range(len(T[0])):
+			item = T[0][i]
+			if i != 11:
+				f.write("%s " % item)
+			else:
+				f.write("%s" % item)
+		f.write("\n")
+
 		cnt += 1
 		
 
-	print(total_points)
+	# print(total_points)
 	img2 = img1
 	pts2 = pts1
 
