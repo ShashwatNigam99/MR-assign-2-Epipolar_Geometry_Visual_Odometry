@@ -48,7 +48,6 @@ def get_fundamental_matrix(pts1, pts2):
 	u, s, vh = np.linalg.svd(F_mat, full_matrices=True)
 
 	F_mat = u @ np.diag([s[0], s[1], 0]) @ vh
-	# F = cv2.findFundamentalMat(pts1, pts2)
 
 	return F_mat
 
@@ -78,29 +77,22 @@ def RANSAC(pts1, pts2):
 	for i in range(iterations):
  		idx = random.sample(range(0, total_points), ptsPerItr)
 
- 		# for i in range(8):
- 		# 	print(pts1[i])
- 		# 	print(pts2[i])
-
  		select1 = pts1[idx]
  		select2 = pts2[idx]
 
  		F_mat = get_fundamental_matrix(select1, select2)
 
  		err = np.sum(np.multiply(xb, (F_mat @ xa.T).T), axis = 1)
- 		# print(err)
 
  		currentInliers = 0
  		for i in range(len(xa)):
  			if abs(err[i]) < errThreshold:
  				currentInliers += 1
 
- 		# print(currentInliers)
  		if currentInliers > maxInliers:
  			F_matrix = F_mat 
  			maxInliers = currentInliers
 
-	# print(F_matrix)
 	print("Total: ", total_points)
 	print("maxInliers: ", maxInliers)
 	return t_b.T @ F_matrix @ t_a
@@ -155,7 +147,6 @@ while cnt < 801:
 		print("flow: ", cnt)
 
 		F_mat = RANSAC(pts1, pts2)
-		# F_mat = cv2.findFundamentalMat(pts2, pts1, method=cv2.FM_RANSAC)[0]
 
 		E_mat = get_E_mat(F_mat, K_mat)
 		print(F_mat)
@@ -168,7 +159,6 @@ while cnt < 801:
 
 		T = np.concatenate((T, newrow), axis=0)
 
-		# T = np.linalg.inv(T)
 		T_cum = T_cum @ T
 
 
