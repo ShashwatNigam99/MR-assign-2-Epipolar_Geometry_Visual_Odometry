@@ -55,9 +55,9 @@ def get_fundamental_matrix(pts1, pts2):
 def RANSAC(pts1, pts2):
 
 	ptsPerItr = 8
-	iterations = 5
+	iterations = 750
 	maxInliers = 0
-	errThreshold = 0.001
+	errThreshold = 0.05
 
 
 	F_matrix = np.zeros([3,3])
@@ -154,44 +154,29 @@ while cnt < 801:
 		total_points = len(pts1)
 		print("flow: ", cnt)
 
-		F_mat = RANSAC(pts2, pts1)
+		F_mat = RANSAC(pts1, pts2)
+		# F_mat = cv2.findFundamentalMat(pts2, pts1, method=cv2.FM_RANSAC)[0]
 
 		E_mat = get_E_mat(F_mat, K_mat)
 		print(F_mat)
 
 
 		points, R, t, mask = cv2.recoverPose(E_mat, pts1, pts2)
-		T = np.concatenate((R, t), axis=1)
-		newrow = np.array([[0,0,0,1]])
-
-		T = np.concatenate((T, newrow), axis=0)
-		# print(T)
-		# points, R, t, mask = cv2.recoverPose(E_mat, pts2, pts1)
-
-		# T = np.concatenate((R, t), axis=1)
-		# newrow = np.array([[0,0,0,1]])
-
-		# T = np.concatenate((T, newrow), axis=0)
-		# print(T)
-
-		# quit()
-		# t = np.multiply(scale_list[cnt], t)
-
-		# print(R)
-		# print(t) 
 
 		T = np.concatenate((R, t), axis=1)
 		newrow = np.array([[0,0,0,1]])
 
 		T = np.concatenate((T, newrow), axis=0)
 
-		T = np.linalg.inv(T)
-
+		# T = np.linalg.inv(T)
 		T_cum = T_cum @ T
 
-		T_temp = T_cum[:3, :].reshape(1, 12)
-		# print(T)
 
+		T_cum[:3, 3] *= (scale_list[cnt]/np.linalg.norm(T_cum[:3, 3]))
+		
+		print(T_cum[:3, 3])
+
+		T_temp = T_cum[:3, :].reshape(1, 12)
 		
 		for i in range(len(T_temp[0])):
 			item = T_temp[0][i]
@@ -202,16 +187,6 @@ while cnt < 801:
 		f.write("\n")
 
 		cnt += 1
-		
 
-	# print(total_points)
 	img2 = img1
 	pts2 = pts1
-
-# plt.imshow(img1) 
-# plt.scatter(x=pts1[:, 0], y=pts1[:, 1], c='r', s=10, marker='x', zorder=2)
-# plt.show()
-
-# plt.imshow(img2) 
-# plt.scatter(x=pts2[:, 0], y=pts2[:, 1], c='r', s=10, marker='x', zorder=2)
-# plt.show()
